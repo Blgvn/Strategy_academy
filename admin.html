@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Стратеги Академи</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b1e3a;--navy2:#142444;--navy3:#1a2d52;
+  --gold:#c8a84b;--gold2:#e8c97a;
+  --cream:#f4efe5;--white:#fff;--muted:#6b7589;
+  --border:rgba(200,168,75,.2);--red:#e74c3c;--green:#27ae60;
+  --charcoal:#1e1e2e;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:var(--navy);color:var(--white);min-height:100vh}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--navy)}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:0}
+.login-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(200,168,75,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(200,168,75,.03) 1px,transparent 1px);background-size:60px 60px}
+.login-card{position:relative;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:48px;width:100%;max-width:440px;text-align:center}
+.login-logo{width:60px;height:60px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:26px;color:var(--navy);margin:0 auto 24px}
+.login-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--white);font-weight:600;margin-bottom:6px}
+.login-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:32px}
+.login-field{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:13px 16px;color:var(--white);font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:12px}
+.login-field:focus{border-color:var(--gold)}
+.login-field::placeholder{color:rgba(255,255,255,.3)}
+.login-btn{width:100%;background:var(--gold);color:var(--navy);border:none;padding:14px;font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;border-radius:8px;cursor:pointer;transition:all .2s;margin-top:4px}
+.login-btn:hover{background:var(--gold2)}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;min-height:18px}
+.login-hint{font-size:11px;color:rgba(255,255,255,.2);margin-top:16px}
+
+/* ── MAIN LAYOUT ── */
+#app{display:none;min-height:100vh;flex-direction:column}
+#app.visible{display:flex}
+
+/* HEADER */
+.adm-header{background:rgba(11,30,58,.98);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.adm-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.adm-badge{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;color:var(--navy)}
+.adm-name{font-size:14px;color:rgba(255,255,255,.8);font-weight:600;letter-spacing:.03em}
+.adm-name small{display:block;font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;font-weight:400}
+.adm-nav{display:flex;gap:4px}
+.adm-nav button{background:none;border:none;color:rgba(255,255,255,.55);padding:7px 14px;border-radius:5px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;letter-spacing:.04em;transition:all .2s}
+.adm-nav button.active,.adm-nav button:hover{background:rgba(200,168,75,.1);color:var(--gold)}
+.adm-actions{display:flex;gap:10px;align-items:center}
+.adm-actions a{color:rgba(255,255,255,.45);font-size:12px;text-decoration:none;transition:color .2s}
+.adm-actions a:hover{color:var(--gold)}
+.logout-btn{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);padding:6px 14px;border-radius:5px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;transition:all .2s}
+.logout-btn:hover{background:rgba(231,76,60,.2)}
+
+/* BODY */
+.adm-body{flex:1;padding:32px;max-width:1400px;margin:0 auto;width:100%}
+
+/* TABS */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stat-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:22px 24px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat-card:hover{border-color:rgba(200,168,75,.4)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:6px}
+.stat-label{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.stat-sub{font-size:11px;color:rgba(255,255,255,.25);margin-top:6px}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sec-hdr h2{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--white);font-weight:600}
+.sec-hdr h2 small{font-size:12px;color:rgba(255,255,255,.35);font-family:'Outfit',sans-serif;font-weight:400;margin-left:8px}
+
+/* ADD FORM */
+.add-form{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-full{grid-column:1/-1}
+.f-label{display:block;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.f-input,.f-select,.f-textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;padding:11px 14px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--gold)}
+.f-input::placeholder,.f-textarea::placeholder{color:rgba(255,255,255,.25)}
+.f-textarea{height:100px;resize:vertical}
+.f-select option{background:var(--navy2)}
+.img-area{width:100%;background:rgba(255,255,255,.04);border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.img-area:hover{border-color:var(--gold);background:rgba(200,168,75,.04)}
+.img-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-area .ia-icon{font-size:22px}
+.img-area .ia-text{font-size:12px;color:rgba(255,255,255,.4)}
+.img-preview{width:100%;height:110px;object-fit:cover;border-radius:6px;margin-top:8px;display:none}
+.img-preview.show{display:block}
+.form-actions{display:flex;gap:12px;margin-top:20px}
+.btn-primary{background:var(--gold);color:var(--navy);border:none;padding:12px 24px;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;border-radius:6px;cursor:pointer;transition:all .2s}
+.btn-primary:hover{background:var(--gold2)}
+.btn-secondary{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid var(--border);padding:12px 20px;font-family:'Outfit',sans-serif;font-size:13px;border-radius:6px;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+
+/* NEWS TABLE */
+.news-table{width:100%;border-collapse:collapse}
+.news-table th{text-align:left;font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.news-table td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;font-size:13px}
+.news-table tr:hover td{background:rgba(255,255,255,.02)}
+.news-table tr:last-child td{border-bottom:none}
+.nt-title{color:var(--white);font-weight:500;max-width:320px}
+.nt-title small{display:block;font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+.nt-cat{display:inline-block;font-size:9px;color:var(--gold);border:1px solid rgba(200,168,75,.3);padding:2px 8px;border-radius:20px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.nt-views{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--gold2)}
+.nt-date{color:rgba(255,255,255,.4);font-size:12px;white-space:nowrap}
+.nt-actions{display:flex;gap:8px;white-space:nowrap}
+.btn-edit{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.25);color:var(--gold);padding:5px 12px;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;transition:all .2s}
+.btn-edit:hover{background:rgba(200,168,75,.2)}
+.btn-del{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:var(--red);padding:5px 10px;border-radius:4px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:11px;transition:all .2s}
+.btn-del:hover{background:rgba(231,76,60,.2)}
+.no-news{text-align:center;padding:48px;color:rgba(255,255,255,.25);font-style:italic}
+
+/* EDIT MODAL */
+.edit-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;padding:20px}
+.edit-modal-overlay.open{opacity:1;pointer-events:all}
+.edit-modal{background:var(--navy2);border:1px solid var(--border);border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:32px;position:relative}
+.em-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.06);border:none;width:30px;height:30px;border-radius:50%;color:var(--white);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+/* ANALYTICS TAB */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+.chart-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:24px}
+.chart-card h3{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--white);font-weight:600;margin-bottom:20px}
+.bar-item{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.bar-label{font-size:12px;color:rgba(255,255,255,.6);width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bar-track{flex:1;background:rgba(255,255,255,.06);border-radius:3px;height:8px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .8s ease}
+.bar-count{font-size:12px;color:var(--gold);font-weight:600;width:40px;text-align:right;flex-shrink:0}
+.top-news-list{display:flex;flex-direction:column;gap:12px}
+.top-news-item{display:flex;align-items:flex-start;gap:14px;padding:12px;background:rgba(255,255,255,.03);border-radius:6px}
+.tni-rank{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:rgba(200,168,75,.4);width:24px;flex-shrink:0;line-height:1}
+.tni-info{flex:1;min-width:0}
+.tni-title{font-size:13px;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;margin-bottom:3px}
+.tni-cat{font-size:10px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+.tni-views{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold);flex-shrink:0}
+.total-views-card{background:linear-gradient(135deg,rgba(200,168,75,.15),rgba(200,168,75,.05));border:1px solid rgba(200,168,75,.3);border-radius:10px;padding:28px;text-align:center;grid-column:1/-1}
+.tv-num{font-family:'Cormorant Garamond',serif;font-size:72px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:8px}
+.tv-label{font-size:13px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase}
+
+/* SETTINGS TAB */
+.settings-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px}
+.settings-card h3{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--white);margin-bottom:20px}
+.pwd-change{display:grid;gap:12px;max-width:400px}
+.danger-btn{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);padding:11px 20px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;border-radius:6px;cursor:pointer;transition:all .2s}
+.danger-btn:hover{background:rgba(231,76,60,.2)}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--gold);border:1px solid var(--gold);padding:11px 22px;border-radius:30px;font-size:12px;font-weight:600;z-index:900;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{color:var(--red);border-color:var(--red)}
+
+/* CONFIRM DIALOG */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.confirm-overlay.open{opacity:1;pointer-events:all}
+.confirm-box{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:380px;text-align:center}
+.confirm-box h4{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--white);margin-bottom:10px}
+.confirm-box p{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:24px;line-height:1.6}
+.confirm-btns{display:flex;gap:12px;justify-content:center}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <div class="login-logo">SA</div>
+    <div class="login-title">Admin Нэвтрэх</div>
+    <div class="login-sub">Стратеги Академи — Удирдлагын самбар</div>
+    <input type="text" class="login-field" id="l-user" placeholder="Нэвтрэх нэр" autocomplete="username">
+    <input type="password" class="login-field" id="l-pass" placeholder="Нууц үг" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Нэвтрэх →</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-hint">Анхдагч: admin / admin123</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="adm-header">
+    <a href="#" class="adm-brand">
+      <div class="adm-badge">SA</div>
+      <div class="adm-name">Стратеги Академи <small>Admin Dashboard</small></div>
+    </a>
+    <nav class="adm-nav">
+      <button class="active" onclick="switchTab('news',this)">📰 Мэдээ</button>
+      <button onclick="switchTab('analytics',this)">📊 Аналитик</button>
+      <button onclick="switchTab('settings',this)">⚙️ Тохиргоо</button>
+    </nav>
+    <div class="adm-actions">
+      <a href="index.html" target="_blank">🌐 Сайт харах</a>
+      <button class="logout-btn" onclick="doLogout()">Гарах</button>
+    </div>
+  </header>
+
+  <div class="adm-body">
+
+    <!-- ── NEWS TAB ── -->
+    <div class="tab-content active" id="tab-news">
+      <!-- Stats row -->
+      <div class="stats-row" id="stats-row"></div>
+
+      <!-- Add form -->
+      <div class="add-form" id="add-form-wrap">
+        <div class="sec-hdr" style="margin-bottom:20px">
+          <h2>✦ Шинэ мэдээ нийтлэх</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-full">
+            <label class="f-label">Гарчиг *</label>
+            <input type="text" class="f-input" id="f-title" placeholder="Мэдээний гарчиг...">
+          </div>
+          <div>
+            <label class="f-label">Ангилал</label>
+            <select class="f-select" id="f-cat">
+              <option>Мэдээ</option><option>Судалгаа</option><option>Арга хэмжээ</option><option>Зарлал</option><option>Тайлан</option>
+            </select>
+          </div>
+          <div>
+            <label class="f-label">Зохиогч</label>
+            <input type="text" class="f-input" id="f-author" placeholder="Зохиогчийн нэр...">
+          </div>
+          <div class="form-full">
+            <label class="f-label">Товч агуулга</label>
+            <textarea class="f-textarea" id="f-excerpt" placeholder="Мэдээний товч тайлбар..."></textarea>
+          </div>
+          <div class="form-full">
+            <label class="f-label">Зураг оруулах</label>
+            <div class="img-area" id="img-area">
+              <input type="file" id="f-img" accept="image/*" onchange="previewImg(this)">
+              <span class="ia-icon">🖼</span>
+              <div class="ia-text">Зураг сонгох (JPG, PNG, GIF)</div>
+            </div>
+            <img class="img-preview" id="img-prev" alt="">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="addNews()">Нийтлэх →</button>
+          <button class="btn-secondary" onclick="clearForm()">Цэвэрлэх</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div>
+        <div class="sec-hdr">
+          <h2>Нийтлэгдсэн мэдээнүүд <small id="news-count"></small></h2>
+          <input type="text" class="f-input" id="search-input" placeholder="Хайх..." style="width:220px;padding:8px 12px;font-size:12px" oninput="renderTable()">
+        </div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <table class="news-table">
+            <thead><tr>
+              <th>Гарчиг</th><th>Ангилал</th><th style="text-align:center">👁 Үзсэн</th><th>Огноо</th><th>Үйлдэл</th>
+            </tr></thead>
+            <tbody id="news-tbody"></tbody>
+          </table>
+          <div class="no-news" id="no-news" style="display:none">Мэдээ байхгүй байна</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS TAB ── -->
+    <div class="tab-content" id="tab-analytics">
+      <div class="sec-hdr"><h2>📊 Аналитик самбар</h2></div>
+      <div class="analytics-grid" id="analytics-content"></div>
+    </div>
+
+    <!-- ── SETTINGS TAB ── -->
+    <div class="tab-content" id="tab-settings">
+      <div class="sec-hdr"><h2>⚙️ Тохиргоо</h2></div>
+      <div class="settings-card">
+        <h3>🔐 Нууц үг солих</h3>
+        <div class="pwd-change">
+          <div><label class="f-label">Одоогийн нууц үг</label><input type="password" class="f-input" id="old-pwd" placeholder="Одоогийн нууц үг"></div>
+          <div><label class="f-label">Шинэ нууц үг</label><input type="password" class="f-input" id="new-pwd" placeholder="Шинэ нууц үг (дор хаяж 6 тэмдэгт)"></div>
+          <div><label class="f-label">Шинэ нууц үг (давтах)</label><input type="password" class="f-input" id="new-pwd2" placeholder="Нууц үг давтах"></div>
+          <button class="btn-primary" style="width:fit-content" onclick="changePwd()">Нууц үг солих</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>🗑️ Өгөгдөл цэвэрлэх</h3>
+        <p style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:16px;line-height:1.6">Бүх мэдээ болон үзэлтийн тоог устгана. Энэ үйлдлийг буцаах боломжгүй.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="danger-btn" onclick="clearViews()">Үзэлтийн тоог цэвэрлэх</button>
+          <button class="danger-btn" onclick="clearAllNews()">Бүх мэдээ устгах</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>ℹ️ Тухай</h3>
+        <p style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.8">
+          Стратеги Академи — Admin Dashboard v2.0<br>
+          Мэдээ нийтлэлийн систем, үзэлтийн аналитик<br>
+          <a href="index.html" target="_blank" style="color:var(--gold)">Нийтийн сайт харах →</a>
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /adm-body -->
+</div><!-- /app -->
+
+<!-- EDIT MODAL -->
+<div class="edit-modal-overlay" id="edit-overlay" onclick="closeEdit(event)">
+  <div class="edit-modal">
+    <button class="em-close" onclick="closeEditBtn()">✕</button>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:24px;color:var(--white)">Мэдээ засах</h2>
+    <input type="hidden" id="e-id">
+    <div style="display:grid;gap:14px">
+      <div><label class="f-label">Гарчиг *</label><input type="text" class="f-input" id="e-title" placeholder="Гарчиг..."></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="f-label">Ангилал</label><select class="f-select" id="e-cat"><option>Мэдээ</option><option>Судалгаа</option><option>Арга хэмжээ</option><option>Зарлал</option><option>Тайлан</option></select></div>
+        <div><label class="f-label">Зохиогч</label><input type="text" class="f-input" id="e-author" placeholder="Зохиогч..."></div>
+      </div>
+      <div><label class="f-label">Товч агуулга</label><textarea class="f-textarea" id="e-excerpt" placeholder="Товч тайлбар..."></textarea></div>
+      <div><label class="f-label">Шинэ зураг (заавал биш)</label><div class="img-area" style="min-height:70px"><input type="file" id="e-img" accept="image/*" onchange="previewEditImg(this)"><span class="ia-icon">🖼</span><div class="ia-text">Зураг солих</div></div><img class="img-preview" id="e-img-prev" alt=""></div>
+      <button class="btn-primary" onclick="saveEdit()">Хадгалах →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="conf-overlay">
+  <div class="confirm-box">
+    <h4 id="conf-title">Устгах уу?</h4>
+    <p id="conf-msg">Энэ үйлдлийг буцаах боломжгүй.</p>
+    <div class="confirm-btns">
+      <button class="danger-btn" id="conf-ok" onclick="confOk()">Тийм, устгах</button>
+      <button class="btn-secondary" onclick="confCancel()">Болих</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONSTANTS ──
+const KEY='sa_news_v4';
+const VIEWS_KEY='sa_views_v4';
+const AUTH_KEY='sa_auth_v1';
+const PWD_KEY='sa_pwd_v1';
+const DEFAULT_USER='admin';
+const DEFAULT_PWD='admin123';
+
+// ── AUTH ──
+function getPwd(){return localStorage.getItem(PWD_KEY)||DEFAULT_PWD;}
+function isLoggedIn(){return sessionStorage.getItem(AUTH_KEY)==='1';}
+
+function doLogin(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value;
+  const err=document.getElementById('login-err');
+  if(u===DEFAULT_USER&&p===getPwd()){
+    sessionStorage.setItem(AUTH_KEY,'1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  }else{
+    err.textContent='Нэвтрэх нэр эсвэл нууц үг буруу байна';
+    document.getElementById('l-pass').value='';
+  }
+}
+function doLogout(){sessionStorage.removeItem(AUTH_KEY);location.reload();}
+
+function changePwd(){
+  const o=document.getElementById('old-pwd').value;
+  const n=document.getElementById('new-pwd').value;
+  const n2=document.getElementById('new-pwd2').value;
+  if(o!==getPwd()){toast('Одоогийн нууц үг буруу байна','err');return;}
+  if(n.length<6){toast('Нууц үг дор хаяж 6 тэмдэгттэй байх ёстой','err');return;}
+  if(n!==n2){toast('Нууц үг таарахгүй байна','err');return;}
+  localStorage.setItem(PWD_KEY,n);
+  document.getElementById('old-pwd').value='';
+  document.getElementById('new-pwd').value='';
+  document.getElementById('new-pwd2').value='';
+  toast('Нууц үг амжилттай солигдлоо ✓');
+}
+
+// ── INIT ──
+if(isLoggedIn()){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  window.addEventListener('DOMContentLoaded',initApp);
+}
+
+function initApp(){renderStats();renderTable();initAnalytics();}
+
+// ── STORAGE ──
+const defaultNews=[
+  {id:1,title:'Стратеги Академи байгуулагдсаны 70 жилийн ойн арга хэмжээ амжилттай боллоо',excerpt:'1955 оны 12 сарын 19-нд байгуулагдсан Стратеги Академийн 70 жилийн ойд зориулсан тэмдэглэлт арга хэмжээ өнөөдөр амжилттай боллоо.',cat:'Арга хэмжээ',author:'Редакц',date:'2026-04-05',img:''},
+  {id:2,title:'Монголын эдийн засгийн 2026 оны төлөв байдлын судалгааны тайлан гарлаа',excerpt:'Монгол Улсын 2026 оны макро эдийн засгийн цогц дүн шинжилгээ нийтлэгдлээ.',cat:'Судалгаа',author:'Судалгааны баг',date:'2026-04-03',img:''},
+  {id:3,title:'Бодлогын судалгааны олон улсын хурал',excerpt:'Улаанбаатар хотод болсон бодлогын судалгааны олон улсын хурал.',cat:'Арга хэмжээ',author:'Мэдээллийн алба',date:'2026-04-01',img:''},
+  {id:4,title:'Монгол-Хятадын хамтын ажиллагааны судалгааны тайлан',excerpt:'Эдийн засгийн хамтын ажиллагааны шинэ боломжуудыг судалсан тайлан.',cat:'Судалгаа',author:'Гадаад бодлогын тасаг',date:'2026-03-28',img:''}
+];
+
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}save(defaultNews);return defaultNews;}
+function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));}catch(e){}}
+function loadViews(){try{const r=localStorage.getItem(VIEWS_KEY);if(r)return JSON.parse(r);}catch(e){}return {};}
+function saveViews(v){try{localStorage.setItem(VIEWS_KEY,JSON.stringify(v));}catch(e){}}
+function getViews(id){return loadViews()[id]||0;}
+function totalViews(){return Object.values(loadViews()).reduce((s,v)=>s+v,0);}
+
+function fmtDate(d){return new Date(d).toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});}
+
+// ── STATS ──
+function renderStats(){
+  const news=load();
+  const tv=totalViews();
+  const cats={};news.forEach(n=>cats[n.cat]=(cats[n.cat]||0)+1);
+  const topCat=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+  const topNews=news.slice().sort((a,b)=>getViews(b.id)-getViews(a.id))[0];
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${news.length}</div><div class="stat-label">Нийт мэдээ</div></div>
+    <div class="stat-card"><div class="stat-num">${tv.toLocaleString()}</div><div class="stat-label">Нийт үзэлт</div><div class="stat-sub">Бүх мэдээний нийлбэр</div></div>
+    <div class="stat-card"><div class="stat-num">${news.length?Math.round(tv/news.length):0}</div><div class="stat-label">Дундаж үзэлт</div><div class="stat-sub">Мэдээ тус бүрт</div></div>
+    <div class="stat-card"><div class="stat-num" style="font-size:22px;padding-top:8px">${topNews?topNews.title.slice(0,28)+'…':'—'}</div><div class="stat-label">Хамгийн их үзэлттэй</div><div class="stat-sub">${topNews?getViews(topNews.id)+' үзэлт':''}</div></div>
+  `;
+}
+
+// ── TABLE ──
+function renderTable(){
+  const news=load();
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const filtered=q?news.filter(n=>n.title.toLowerCase().includes(q)||n.cat.toLowerCase().includes(q)):news;
+  const tbody=document.getElementById('news-tbody');
+  document.getElementById('news-count').textContent=`(${filtered.length} мэдээ)`;
+  document.getElementById('no-news').style.display=filtered.length?'none':'block';
+  tbody.innerHTML=filtered.map(n=>`
+    <tr>
+      <td class="nt-title">${n.title}<small>${n.author||''} ${n.excerpt?'· '+n.excerpt.slice(0,60)+'…':''}</small></td>
+      <td><span class="nt-cat">${n.cat}</span></td>
+      <td style="text-align:center"><span class="nt-views">${getViews(n.id)}</span></td>
+      <td class="nt-date">${fmtDate(n.date)}</td>
+      <td class="nt-actions">
+        <button class="btn-edit" onclick="openEdit(${n.id})">Засах</button>
+        <button class="btn-del" onclick="askDel(${n.id},'${n.title.replace(/'/g,"\\'")}')">✕</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── ADD NEWS ──
+let pendingImg='';
+function previewImg(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    pendingImg=e.target.result;
+    const p=document.getElementById('img-prev');p.src=pendingImg;p.classList.add('show');
+    document.querySelector('#img-area .ia-text').textContent='✓ '+f.name;
+  };r.readAsDataURL(f);
+}
+function clearForm(){
+  ['f-title','f-author','f-excerpt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-cat').selectedIndex=0;
+  document.getElementById('f-img').value='';
+  document.getElementById('img-prev').classList.remove('show');
+  document.querySelector('#img-area .ia-text').textContent='Зураг сонгох (JPG, PNG, GIF)';
+  pendingImg='';
+}
+function addNews(){
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){toast('Гарчиг оруулна уу!','err');return;}
+  const news=load();
+  news.unshift({id:Date.now(),title,cat:document.getElementById('f-cat').value,excerpt:document.getElementById('f-excerpt').value.trim(),author:document.getElementById('f-author').value.trim(),date:new Date().toISOString().split('T')[0],img:pendingImg});
+  save(news);clearForm();renderStats();renderTable();initAnalytics();
+  toast('Мэдээ амжилттай нийтлэгдлээ ✓');
+}
+
+// ── EDIT ──
+let editImg='';
+function previewEditImg(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{editImg=e.target.result;const p=document.getElementById('e-img-prev');p.src=editImg;p.classList.add('show');};
+  r.readAsDataURL(f);
+}
+function openEdit(id){
+  const n=load().find(x=>x.id===id);if(!n)return;
+  editImg='';
+  document.getElementById('e-id').value=n.id;
+  document.getElementById('e-title').value=n.title;
+  document.getElementById('e-cat').value=n.cat;
+  document.getElementById('e-author').value=n.author||'';
+  document.getElementById('e-excerpt').value=n.excerpt||'';
+  const p=document.getElementById('e-img-prev');
+  if(n.img){p.src=n.img;p.classList.add('show');}else{p.classList.remove('show');}
+  document.getElementById('e-img').value='';
+  document.getElementById('edit-overlay').classList.add('open');
+}
+function closeEditBtn(){document.getElementById('edit-overlay').classList.remove('open');}
+function closeEdit(e){if(e.target===document.getElementById('edit-overlay'))closeEditBtn();}
+function saveEdit(){
+  const id=+document.getElementById('e-id').value;
+  const title=document.getElementById('e-title').value.trim();
+  if(!title){toast('Гарчиг оруулна уу!','err');return;}
+  const news=load();
+  const i=news.findIndex(n=>n.id===id);if(i<0)return;
+  news[i]={...news[i],title,cat:document.getElementById('e-cat').value,author:document.getElementById('e-author').value.trim(),excerpt:document.getElementById('e-excerpt').value.trim(),img:editImg||news[i].img};
+  save(news);closeEditBtn();renderStats();renderTable();initAnalytics();
+  toast('Мэдээ амжилттай хадгалагдлаа ✓');
+}
+
+// ── DELETE ──
+let pendingDel=null;
+function askDel(id,title){
+  pendingDel=id;
+  document.getElementById('conf-title').textContent='Устгах уу?';
+  document.getElementById('conf-msg').textContent=`"${title.slice(0,50)}" мэдээг устгана уу? Энэ үйлдлийг буцаах боломжгүй.`;
+  document.getElementById('conf-overlay').classList.add('open');
+}
+function confOk(){
+  if(!pendingDel)return;
+  const news=load().filter(n=>n.id!==pendingDel);
+  save(news);pendingDel=null;
+  document.getElementById('conf-overlay').classList.remove('open');
+  renderStats();renderTable();initAnalytics();
+  toast('Мэдээ устгагдлаа');
+}
+function confCancel(){document.getElementById('conf-overlay').classList.remove('open');pendingDel=null;}
+
+// ── ANALYTICS ──
+function initAnalytics(){
+  const news=load();
+  const views=loadViews();
+  const tv=totalViews();
+  const sorted=[...news].sort((a,b)=>getViews(b.id)-getViews(a.id));
+  const maxV=sorted.length?getViews(sorted[0].id)||1:1;
+  const cats={};news.forEach(n=>cats[n.cat]=(cats[n.cat]||0)+1);
+  const catViews={};news.forEach(n=>{catViews[n.cat]=(catViews[n.cat]||0)+getViews(n.id);});
+  const maxCatV=Math.max(...Object.values(catViews),1);
+
+  document.getElementById('analytics-content').innerHTML=`
+    <div class="total-views-card" style="grid-column:1/-1">
+      <div class="tv-num">${tv.toLocaleString()}</div>
+      <div class="tv-label">Нийт үзэлтийн тоо</div>
+    </div>
+    <div class="chart-card">
+      <h3>🏆 Хамгийн их үзсэн мэдээнүүд</h3>
+      <div class="top-news-list">
+        ${sorted.slice(0,5).map((n,i)=>`
+          <div class="top-news-item">
+            <div class="tni-rank">${i+1}</div>
+            <div class="tni-info"><div class="tni-title">${n.title}</div><div class="tni-cat">${n.cat}</div></div>
+            <div class="tni-views">${getViews(n.id)}</div>
+          </div>
+        `).join('')}
+        ${!sorted.length?'<div style="color:rgba(255,255,255,.25);font-size:13px;text-align:center;padding:20px">Мэдээ байхгүй</div>':''}
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>📂 Ангиллаар үзэлт</h3>
+      ${Object.entries(catViews).sort((a,b)=>b[1]-a[1]).map(([cat,v])=>`
+        <div class="bar-item">
+          <div class="bar-label">${cat}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxCatV*100)}%"></div></div>
+          <div class="bar-count">${v}</div>
+        </div>
+      `).join('')}
+      ${!Object.keys(catViews).length?'<div style="color:rgba(255,255,255,.25);font-size:13px;text-align:center;padding:20px">Өгөгдөл байхгүй</div>':''}
+    </div>
+    <div class="chart-card" style="grid-column:1/-1">
+      <h3>📰 Мэдээ тус бүрийн үзэлт</h3>
+      ${sorted.map(n=>`
+        <div class="bar-item">
+          <div class="bar-label" style="width:260px">${n.title.slice(0,38)}…</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(getViews(n.id)/maxV*100)}%"></div></div>
+          <div class="bar-count">${getViews(n.id)}</div>
+        </div>
+      `).join('')}
+      ${!sorted.length?'<div style="color:rgba(255,255,255,.25);font-size:13px;text-align:center;padding:20px">Мэдээ байхгүй</div>':''}
+    </div>
+  `;
+  // animate bars
+  setTimeout(()=>{document.querySelectorAll('.bar-fill').forEach(b=>{const w=b.style.width;b.style.width='0';setTimeout(()=>b.style.width=w,50);});},100);
+}
+
+// ── SETTINGS ──
+function clearViews(){
+  if(confirm('Бүх үзэлтийн тоог тэглэх үү?')){
+    saveViews({});renderStats();renderTable();initAnalytics();
+    toast('Үзэлтийн тоо цэвэрлэгдлээ');
+  }
+}
+function clearAllNews(){
+  if(confirm('АНХААРУУЛГА: Бүх мэдээг устгах уу? Энэ үйлдлийг буцаах боломжгүй!')){
+    save([]);saveViews({});renderStats();renderTable();initAnalytics();
+    toast('Бүх мэдээ устгагдлаа');
+  }
+}
+
+// ── TAB SWITCH ──
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.adm-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='analytics')initAnalytics();
+}
+
+// ── TOAST ──
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(type==='err'?' err':'');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── ENTER LOGIN ──
+document.getElementById('l-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('l-pass').focus();});
+</script>
+</body>
+</html>
